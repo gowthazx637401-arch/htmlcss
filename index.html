@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MERN Stack Assignment - Todo App</title>
+    <style>
+        /* CSS Styling */
+        :root {
+            --primary-color: #4a90e2;
+            --danger-color: #e74c3c;
+            --success-color: #2ecc71;
+            --bg-color: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            padding-top: 50px;
+        }
+
+        .container {
+            background: white;
+            width: 90%;
+            max-width: 500px;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        h2 { text-align: center; color: #333; }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            outline: none;
+        }
+
+        input[type="text"]:focus { border-color: var(--primary-color); }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+
+        .add-btn { background: var(--primary-color); color: white; }
+        .add-btn:hover { opacity: 0.9; }
+
+        .filters {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .filter-btn { background: #eee; color: #666; font-size: 0.8rem; }
+        .filter-btn.active { background: var(--primary-color); color: white; }
+
+        ul { list-style: none; padding: 0; }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            gap: 10px;
+        }
+
+        .todo-item.completed span {
+            text-decoration: line-through;
+            color: #888;
+        }
+
+        .todo-text { flex: 1; cursor: pointer; }
+
+        .edit-btn { background: #f39c12; color: white; }
+        .delete-btn { background: var(--danger-color); color: white; }
+        
+        .error-msg {
+            color: var(--danger-color);
+            font-size: 0.8rem;
+            margin-top: -15px;
+            margin-bottom: 15px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>My Todo List</h2>
+    
+    <div class="input-group">
+        <input type="text" id="todoInput" placeholder="Enter a new task...">
+        <button class="add-btn" onclick="addTodo()">Add Task</button>
+    </div>
+    <div id="errorMsg" class="error-msg">Task cannot be empty!</div>
+
+    <div class="filters">
+        <button class="filter-btn active" onclick="filterTasks('all', this)">All</button>
+        <button class="filter-btn" onclick="filterTasks('pending', this)">Pending</button>
+        <button class="filter-btn" onclick="filterTasks('completed', this)">Completed</button>
+    </div>
+
+    <ul id="todoList"></ul>
+</div>
+
+<script>
+    // JavaScript Logic
+    let todos = [];
+    let currentFilter = 'all';
+
+    const todoInput = document.getElementById('todoInput');
+    const todoList = document.getElementById('todoList');
+    const errorMsg = document.getElementById('errorMsg');
+
+    // CREATE: Add new task
+    function addTodo() {
+        const text = todoInput.value.trim();
+        
+        if (text === "") {
+            errorMsg.style.display = "block";
+            return;
+        }
+
+        errorMsg.style.display = "none";
+        
+        const newTodo = {
+            id: Date.now(),
+            text: text,
+            completed: false
+        };
+
+        todos.push(newTodo);
+        todoInput.value = "";
+        render();
+    }
+
+    // DELETE: Remove task
+    function deleteTodo(id) {
+        todos = todos.filter(t => t.id !== id);
+        render();
+    }
+
+    // UPDATE: Toggle completed status
+    function toggleComplete(id) {
+        todos = todos.map(t => {
+            if (t.id === id) return { ...t, completed: !t.completed };
+            return t;
+        });
+        render();
+    }
+
+    // UPDATE: Edit task text
+    function editTodo(id) {
+        const todo = todos.find(t => t.id === id);
+        const newText = prompt("Edit your task:", todo.text);
+        
+        if (newText !== null && newText.trim() !== "") {
+            todo.text = newText.trim();
+            render();
+        }
+    }
+
+    // READ: Filter and Display
+    function filterTasks(filter, btn) {
+        currentFilter = filter;
+        
+        // UI: Update active button state
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        render();
+    }
+
+    function render() {
+        todoList.innerHTML = "";
+
+        let filteredTodos = todos;
+        if (currentFilter === 'pending') filteredTodos = todos.filter(t => !t.completed);
+        if (currentFilter === 'completed') filteredTodos = todos.filter(t => t.completed);
+
+        filteredTodos.forEach(todo => {
+            const li = document.createElement('li');
+            li.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+            
+            li.innerHTML = `
+                <span class="todo-text" onclick="toggleComplete(${todo.id})">
+                    ${todo.completed ? '✅' : '⭕'} ${todo.text}
+                </span>
+                <button class="edit-btn" onclick="editTodo(${todo.id})">Edit</button>
+                <button class="delete-btn" onclick="deleteTodo(${todo.id})">Delete</button>
+            `;
+            todoList.appendChild(li);
+        });
+    }
+</script>
+
+</body>
+</html>
